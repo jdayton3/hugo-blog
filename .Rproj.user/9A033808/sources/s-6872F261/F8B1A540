@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1522274234200.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "F8B1A540",
+    "lastKnownWriteTime" : 1522277377,
+    "last_content_update" : 1522277377326,
+    "path" : "~/Documents/website/content/posts/2018-03-28-testing-r-markdown.Rmd",
+    "project_path" : "content/posts/2018-03-28-testing-r-markdown.Rmd",
+    "properties" : {
+        "cursorPosition" : "24,83",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
