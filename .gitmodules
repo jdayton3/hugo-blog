@@ -1,0 +1,3 @@
+[submodule "public"]
+	path = public
+	url = git@github.com:jdayton3/jdayton3.github.io.git
