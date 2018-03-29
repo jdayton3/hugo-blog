@@ -1,6 +1,7 @@
 +++
 title = "About Me"
 date = "2018-03-28"
+showcomments = false
 +++
 
 Hi! I'm Jonathan.

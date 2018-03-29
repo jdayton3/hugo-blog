@@ -5,15 +5,17 @@ languageCode = "en"
 theme = "hyde-hyde"
 
 ## Hugo Built-in Features
-# disqusShortname = ""
-# googleAnalytics = ""
-# enableRobotsTXT = true
+disqusShortname = "jdaytn-blog"
+googleAnalytics = "UA-84872440-3"
+enableRobotsTXT = true
+
+Title = "Data Science, et al."
 
 ## Site Settings
 [params]
     author = "Jonathan Dayton"
     title = "Data Science, et al."
-    description = "Jonathan Dayton. Data Science, et al."
+    description = "by Jonathan Dayton"
     authorimage = "/img/jonathan.jpg"
     dateformat = "January 01, 2006"
     highlightjs = true
