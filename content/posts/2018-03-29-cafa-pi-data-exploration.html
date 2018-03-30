@@ -1,0 +1,117 @@
+---
+title: CAFA PI Data Exploration
+author: Jonathan Dayton
+date: '2018-03-30'
+slug: cafa-pi-data-exploration
+categories:
+  - Research
+tags:
+  - Bioinformatics
+  - Data Exploration
+draft: true
+---
+
+
+
+<div id="the-challenge" class="section level2">
+<h2>The Challenge</h2>
+<p>This semester, I’ve been working with the <a href="http://brg.byu.edu/">BYU Bioinformatics Research Group</a> on the <a href="http://biofunctionprediction.org/cafa/">CAFA PI</a> challenge. The goal of CAFA PI is to predict which proteins perform some specific functions. The first major roadblock: <strong>no training data</strong> was provided.</p>
+<p>So we divided into three groups:</p>
+<ul>
+<li>Data acquisition (we needed to get our hands on some training data),</li>
+<li>Data transformation (said training data needed to be formatted), and</li>
+<li>Data analytics.</li>
+</ul>
+<p>The goal of this post is to explore the test data in order to inform our future acquisition / tranformation / analytics decisions.</p>
+<p>[Insert cool meme here]</p>
+</div>
+<div id="the-data" class="section level2">
+<h2>The Data</h2>
+<div id="targets" class="section level3">
+<h3>Targets</h3>
+<p>CAFA PI gives us protein sequences for two organisms:</p>
+<ul>
+<li><em>Pseudomonas aureginosa</em> (a bacteria), and</li>
+<li><em>Candida albicans</em> (a yeast).</li>
+</ul>
+<p>The training data comes in FASTA format, so our first order of business is to turn the FASTAs into a tidy, rectangular format. Code to download and parse the data into CSVs can be found on our <a href="https://github.com/byubrg/cafa-pi">GitHub repo</a>.</p>
+<p>Let’s load the data in and take a quick look:</p>
+<pre class="r"><code>pseudomonas &lt;- read_csv(&quot;data/cafa-pi/target.208963.csv&quot;)
+pseudomonas$Organism &lt;- &quot;Pseudomonas aureginosa&quot;
+candida &lt;- read_csv(&quot;data/cafa-pi/target.237561.csv&quot;)
+candida$Organism &lt;- &quot;Candida albicans&quot;
+targets &lt;- bind_rows(pseudomonas, candida)
+targets %&gt;% select(-Sequence) %&gt;% head() %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">CAFA_ID</th>
+<th align="right">Taxon_ID</th>
+<th align="left">NCBI_Locus_Tag</th>
+<th align="left">Organism</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">T2089630000001</td>
+<td align="right">208963</td>
+<td align="left">PA14_31220</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+<tr class="even">
+<td align="left">T2089630000002</td>
+<td align="right">208963</td>
+<td align="left">PA14_64790</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+<tr class="odd">
+<td align="left">T2089630000003</td>
+<td align="right">208963</td>
+<td align="left">PA14_35250</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+<tr class="even">
+<td align="left">T2089630000004</td>
+<td align="right">208963</td>
+<td align="left">PA14_48450</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+<tr class="odd">
+<td align="left">T2089630000005</td>
+<td align="right">208963</td>
+<td align="left">PA14_29300</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+<tr class="even">
+<td align="left">T2089630000006</td>
+<td align="right">208963</td>
+<td align="left">PA14_27470</td>
+<td align="left">Pseudomonas aureginosa</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>targets$Sequence %&gt;% head()</code></pre>
+<pre><code>## [1] &quot;MSSHHDYIIEITAQHDALKPFAPENGQPLRFKIGDAVIYTNEYGVQFRRCVTGFYRPSGLCGHYARGARYLLNSTSPWVPVAESSLRPDDSA&quot;                                                                                                                                                                                                                                                                                                                                                                
+## [2] &quot;MNRDLRRALDDEPMRPFQWLAVAVCIVLNLIDGFDVLVMAFTASSVAAEWNLGGAEIGLLLSAGLFGMAAGSLFIAPWADRWGRRPLILACLALSGLGMLASALSQAAWQLALLRGLTGLGIGGILASSNVIASEYASRRWRGLAVSLQSTGYALGATLGGLLAVWLIGAWGWRSVFVFGAGLTLAVIPLVCLCLPESLDFLLARRPPRALQRVNALARRLGRAALAELPSPPGGGAEHGSRLARLLCVAQRRTTLLLWALFFLVMFGFYFIMSWTPKLLVAAGLSTAQGITGGTLLSIGGIFGAALLGGLAARFRLERVLALFMLLTAALLALFSLSAGLPGAALPLGLLIGLCANACVAGLYALAPSLYDASVRATGVGWGIGVGRGGAILSPLVAGLLLDDGWQPLSLYGAFAAVFVAAAAVLPLLGARRRERSPTLGDAA&quot;
+## [3] &quot;MQKMNAPLQYRLDHADLALVLALVRGGSLARAAELLRVDVSTVFRAIRRLEKNLGKALFDKSRSGYLANQTARRLAQQAELAEQALEAARIGLELEREVLSGTVRLTCSDAVLHGLLLPALARFMPGYPALQLELATSNDFANLSRRDADIALRMTRTPPEHLVGRNLGEVRYVLCASERYLEGRDATEPAMLHWIAPDDFLPDHPSVVWRRRHYPGVLPAYRCNGVLAVSEMARAGLGLAAIPAYLLRDGDGLRVLDADLEGCASALWLLTRPDCRALRSVVALFDELGRHVRLGDE&quot;                                                                                                                                                  
+## [4] &quot;MTRRHFLQRLGASAGLGAALTLGLEFGSPRGQAAAADHWHMPDEHLPQERVFLAYAASPSIWKDLAEDVNRSVALLARTIARYQPVTLLCRPTQEAAARRACGGANIDYLALPLDDIWVRDYGGCFVLNGEGEAGLVDFNFNGWGGKQQAGNDSRVAGVLSERLEVRYIASQLTGEGGGIEVDGRGTAILTESCWLNDNRNPGMDKGQVEAELKALLGLRKIVWLPGIRGRDITDAHVDFYARFVRPGVVIANLDNDPDSYDYAVTREHLEILRTATDADGRALQVHTLSPPLKPRRDYSRNNPDFAAGYINYLPINGAVIAPQFGDASADRHCGELLGRLYPGRDIVQLNIDPIAAGGGGIHCVTKHMPRA&quot;                                                                        
+## [5] &quot;MALYSAGVEYGIHCLLFLADEKGDSRESSVRTLAELQGVPPELLAKVFTRLAKAGLVAATEGVRGGFRLARPANEISVLDVVRAIDGDKSIFECREVRERCAIFEGNPPSWATRNTCSIHAVMLTAQKRMEEALAQQTILDLVRRVGRIAPPEFGEEVLRWMDASREGRGGSRD&quot;                                                                                                                                                                                                                                                                              
+## [6] &quot;MQIRADFDSGNIQVIDASDPRRIRLAIRPDLASQHFQWFHFKVEGMAPATEHRFTLVNAGQSAYSHAWSGYQAVASYDGERWFRVPSQYDADGLHFQLEPEESEVRFAYFKPYSRERHARLVERALGIEGVERLAVGTSVQGRDIELLRVRRHPDSHLKLWIIAQQHPGEHMAEWFMEGLIERLQRPDDTEMQRLLEKADLYLVPNMNPDGAFHGNLRTNAAGQDLNRAWLEPSAERSPEVWFVQQEMKHHGVDLFLDIHGDEEIPHVFAAGCEGNPGYTPRLERLEQRFREELMARGEFQIRHGYPRSAPGQANLALACNFVGQTYDCLAFTIEMPFKDHDDNPEPGTGWSGARSKRLGQDVLSTLAVLVDELR&quot;</code></pre>
+<p>The first thing that really stands out here is the huge difference in lengths of the proteins. Let’s look at how sequence length is distributed.</p>
+<pre class="r"><code>targets &lt;- targets %&gt;% mutate(seq_length=nchar(Sequence))
+targets %&gt;% select(seq_length) %&gt;% summary()</code></pre>
+<pre><code>##    seq_length    
+##  Min.   :  23.0  
+##  1st Qu.: 213.0  
+##  Median : 353.0  
+##  Mean   : 434.6  
+##  3rd Qu.: 556.0  
+##  Max.   :5212.0</code></pre>
+<pre class="r"><code>targets %&gt;% ggplot(aes(x=seq_length)) +
+  geom_histogram(aes(fill=Organism), bins=50) +
+  theme(legend.position=&quot;bottom&quot;) + 
+  labs(x=&quot;Sequence Length&quot;, y=&quot;Count&quot;, 
+       title=&quot;Sequence Lengths of CAFA PI Targets&quot;)</code></pre>
+<p><img src="/posts/2018-03-29-cafa-pi-data-exploration_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+</div>
+</div>
